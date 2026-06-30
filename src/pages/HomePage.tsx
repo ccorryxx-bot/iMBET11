@@ -78,12 +78,12 @@ export default function HomePage() {
       </motion.div>
 
       {/* Header */}
-      <header className="relative pt-8 pb-4 px-4">
+      <header className="relative pt-[max(0.75rem,env(safe-area-inset-top))] pb-4 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-text-dark/45 via-text-dark/15 to-transparent pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative flex items-center justify-between"
+          className="relative flex items-start justify-between"
         >
           <div>
             <h1 className="text-3xl font-bold text-text-primary tracking-tight">

@@ -9,11 +9,11 @@ export interface PromoBannerSlide {
 }
 
 // TODO: replace with real banner image URLs once ready.
-// Recommended source size: 1200x450px (~2.67:1 ratio), WebP, <150KB.
+// Recommended source size: 1200x675px (16:9 ratio), WebP, <150KB.
 const defaultSlides: PromoBannerSlide[] = [
-  { id: 'b1', image: 'https://picsum.photos/seed/promo1/1200/450', alt: 'Welcome Bonus' },
-  { id: 'b2', image: 'https://picsum.photos/seed/promo2/1200/450', alt: 'Deposit Promotion' },
-  { id: 'b3', image: 'https://picsum.photos/seed/promo3/1200/450', alt: 'Agent Network' },
+  { id: 'b1', image: 'https://picsum.photos/seed/promo1/1200/675', alt: 'Welcome Bonus' },
+  { id: 'b2', image: 'https://picsum.photos/seed/promo2/1200/675', alt: 'Deposit Promotion' },
+  { id: 'b3', image: 'https://picsum.photos/seed/promo3/1200/675', alt: 'Agent Network' },
 ];
 
 const AUTOPLAY_MS = 4500;
@@ -43,7 +43,7 @@ export default function PromoBanner({ slides = defaultSlides }: PromoBannerProps
 
   return (
     <div
-      className="relative w-full aspect-[8/3] rounded-2xl overflow-hidden bg-surface"
+      className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-surface"
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
       onMouseEnter={() => setPaused(true)}
