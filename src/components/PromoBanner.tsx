@@ -8,12 +8,10 @@ export interface PromoBannerSlide {
   link?: string;
 }
 
-// TODO: replace with real banner image URLs once ready.
-// Recommended source size: 1200x675px (16:9 ratio), WebP, <150KB.
 const defaultSlides: PromoBannerSlide[] = [
-  { id: 'b1', image: 'https://picsum.photos/seed/promo1/1200/675', alt: 'Welcome Bonus' },
-  { id: 'b2', image: 'https://picsum.photos/seed/promo2/1200/675', alt: 'Deposit Promotion' },
-  { id: 'b3', image: 'https://picsum.photos/seed/promo3/1200/675', alt: 'Agent Network' },
+  { id: 'b1', image: 'https://ik.imagekit.io/m4n2fghhp/Oracle%20-%20GMB/1782818622841.png?tr=f-auto', alt: 'iMBET11 Promotion 1' },
+  { id: 'b2', image: 'https://ik.imagekit.io/m4n2fghhp/Oracle%20-%20GMB/1782818725398.png?tr=f-auto', alt: 'iMBET11 Promotion 2' },
+  { id: 'b3', image: 'https://ik.imagekit.io/m4n2fghhp/Oracle%20-%20GMB/1782818470604.png?tr=f-auto', alt: 'iMBET11 Promotion 3' },
 ];
 
 const AUTOPLAY_MS = 4500;
