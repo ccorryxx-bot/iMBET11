@@ -29,18 +29,16 @@ export default function GameCard({ title, provider, imageId }: GameCardProps) {
           alt={title}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-text-dark/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <p className="text-text-primary text-xs font-medium truncate">{title}</p>
-        </div>
+        <span
+          className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-2xs font-bold text-white ${providerColor}`}
+        >
+          {provider}
+        </span>
       </div>
 
-      <span
-        className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-2xs font-bold text-white ${providerColor}`}
-      >
-        {provider}
-      </span>
+      <p className="mt-1.5 px-0.5 text-text-secondary text-xs font-medium truncate">
+        {title}
+      </p>
     </motion.div>
   );
 }
