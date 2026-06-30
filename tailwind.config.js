@@ -16,8 +16,8 @@ export default {
         },
         text: {
           primary: '#f5f5f0',
-          secondary: '#c8ccc8',
-          muted: '#9a9e9a',
+          secondary: 'rgba(245, 245, 240, 0.75)',
+          muted: 'rgba(245, 245, 240, 0.5)',
           dark: '#1e2820',
         },
         accent: {

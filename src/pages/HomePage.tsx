@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import GameCard from '../components/GameCard';
+import PromoBanner from '../components/PromoBanner';
 
 const providers = ['ALL', 'PP', 'JILI', 'PG', 'JDB', 'EVO', 'SP'];
 
@@ -77,17 +78,18 @@ export default function HomePage() {
       </motion.div>
 
       {/* Header */}
-      <header className="pt-8 pb-4 px-4">
+      <header className="relative pt-8 pb-4 px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-text-dark/45 via-text-dark/15 to-transparent pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
+          className="relative flex items-center justify-between"
         >
           <div>
             <h1 className="text-3xl font-bold text-text-primary tracking-tight">
               iMBET<span className="text-accent-gold">11</span>
             </h1>
-            <p className="text-text-muted text-sm mt-0.5">Premium Gaming</p>
+            <p className="text-text-secondary text-sm mt-0.5">Premium Gaming</p>
           </div>
           <motion.div
             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface"
@@ -100,13 +102,24 @@ export default function HomePage() {
         </motion.div>
       </header>
 
+      {/* Promo Banner */}
+      <div className="px-4 pb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <PromoBanner />
+        </motion.div>
+      </div>
+
       {/* Provider Filter */}
       <div className="px-4 pb-4">
         <motion.div
           className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
         >
           {providers.map((provider) => (
             <motion.button
