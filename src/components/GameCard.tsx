@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 interface GameCardProps {
   title: string;
   provider: string;
-  imageId: number;
+  image: string;
 }
 
 const providerColors: Record<string, string> = {
@@ -13,7 +13,7 @@ const providerColors: Record<string, string> = {
   JDB: 'bg-provider-jdb',
 };
 
-export default function GameCard({ title, provider, imageId }: GameCardProps) {
+export default function GameCard({ title, provider, image }: GameCardProps) {
   const providerColor = providerColors[provider] || 'bg-accent-gold';
 
   return (
@@ -25,9 +25,10 @@ export default function GameCard({ title, provider, imageId }: GameCardProps) {
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-surface">
         <img
-          src={`https://picsum.photos/seed/game${imageId}/300/400`}
+          src={image}
           alt={title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          loading="lazy"
+          className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-110"
         />
         <span
           className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-2xs font-bold text-white ${providerColor}`}
