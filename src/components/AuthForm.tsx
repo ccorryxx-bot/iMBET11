@@ -8,13 +8,15 @@ interface AuthFormProps {
   mode: 'login' | 'register';
 }
 
-// NOTE: the requested "+68" is not a valid ITU-T E.164 country calling
-// code. Using +66 (Thailand) instead since the app's currency display
-// (฿) is already Thai Baht. Swap/add entries here if that assumption
-// is wrong - nothing else in the form needs to change.
+// Supported country codes for the phone field. "+68" (originally
+// requested) is not a valid ITU-T E.164 code, so it was replaced with
+// +66 (Thailand) - see commit history. +86 (China) added on request.
+// Phone digit-count validation below accepts 7-12 digits, which covers
+// all three (MM mobile ~9, TH mobile ~9, CN mobile 11) without change.
 const countries = [
   { code: '+95', flag: '🇲🇲' },
   { code: '+66', flag: '🇹🇭' },
+  { code: '+86', flag: '🇨🇳' },
 ];
 
 export default function AuthForm({ mode }: AuthFormProps) {
