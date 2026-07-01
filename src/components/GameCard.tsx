@@ -28,7 +28,7 @@ export default function GameCard({ title, provider, image }: GameCardProps) {
           src={image}
           alt={title}
           loading="lazy"
-          className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-110"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
         <span
           className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-2xs font-bold text-white ${providerColor}`}
