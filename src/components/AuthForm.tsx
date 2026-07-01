@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthFormProps {
@@ -64,6 +64,20 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <div className="min-h-screen flex flex-col justify-center px-6 relative overflow-hidden">
+      {/* Back button - returns to Home. Using an explicit route (not
+          navigate(-1)/browser history) on purpose: this screen can be
+          reached via a direct link/bookmark with no history stack, and
+          BottomNav is intentionally hidden here, so history-based back
+          could otherwise strand the user or exit the app entirely. */}
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        aria-label="Back to home"
+        className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-surface/80 text-text-primary backdrop-blur-sm active:scale-95 transition-transform"
+      >
+        <ArrowLeft size={18} />
+      </button>
+
       {/* Ghost watermark - matches the pattern already used on Home/Profile */}
       <motion.div
         className="absolute -top-10 -left-16 text-[10rem] font-bold text-text-primary opacity-[0.02] pointer-events-none select-none -rotate-12"
