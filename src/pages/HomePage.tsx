@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { LogIn } from 'lucide-react';
 import GameCard from '../components/GameCard';
 import PromoBanner from '../components/PromoBanner';
+import { useAuth } from '../context/AuthContext';
 
 const BASE = 'https://raw.githubusercontent.com/ccorryxx-bot/game-assets/c3b26f6848ae526babcbe3fbab75e8a5a61b00e8';
 
@@ -62,6 +65,7 @@ const providerColors: Record<string, string> = {
 
 export default function HomePage() {
   const [activeProvider, setActiveProvider] = useState('ALL');
+  const { isAuthenticated } = useAuth();
 
   const filteredGames =
     activeProvider === 'ALL'
@@ -93,14 +97,27 @@ export default function HomePage() {
             </h1>
             <p className="text-text-secondary text-sm mt-0.5">Premium Gaming</p>
           </div>
-          <motion.div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface"
-            animate={{ boxShadow: ['0 0 0px rgba(212,165,52,0)', '0 0 20px rgba(212,165,52,0.3)', '0 0 0px rgba(212,165,52,0)'] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <span className="text-text-secondary text-xs">Balance</span>
-            <span className="text-accent-gold font-bold">฿12,580</span>
-          </motion.div>
+
+          {isAuthenticated ? (
+            <motion.div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface"
+              animate={{ boxShadow: ['0 0 0px rgba(212,165,52,0)', '0 0 20px rgba(212,165,52,0.3)', '0 0 0px rgba(212,165,52,0)'] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <span className="text-text-secondary text-xs">Balance</span>
+              <span className="text-accent-gold font-bold">฿12,580</span>
+            </motion.div>
+          ) : (
+            <Link to="/login">
+              <motion.div
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-accent-gold text-text-dark text-sm font-medium"
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogIn size={14} />
+                Login
+              </motion.div>
+            </Link>
+          )}
         </motion.div>
       </header>
 
