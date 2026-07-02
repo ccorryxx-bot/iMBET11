@@ -70,12 +70,15 @@ export default function AuthForm({ mode }: AuthFormProps) {
           navigate(-1)/browser history) on purpose: this screen can be
           reached via a direct link/bookmark with no history stack, and
           BottomNav is intentionally hidden here, so history-based back
-          could otherwise strand the user or exit the app entirely. */}
+          could otherwise strand the user or exit the app entirely.
+          Uses the gold accent (not bg-surface) because the light neutral
+          surface color had almost no contrast against this screen's
+          sage-green background - see product feedback. */}
       <button
         type="button"
         onClick={() => navigate('/')}
         aria-label="Back to home"
-        className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-surface/80 text-text-primary backdrop-blur-sm active:scale-95 transition-transform"
+        className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-accent-gold text-text-dark shadow-md active:scale-95 transition-transform"
       >
         <ArrowLeft size={18} />
       </button>
