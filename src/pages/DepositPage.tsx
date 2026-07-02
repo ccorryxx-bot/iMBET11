@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Landmark, Wallet, Bitcoin, CreditCard, CheckCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const paymentMethods = [
   { id: 'bank', name: 'Bank Transfer', icon: Landmark, color: 'from-blue-500 to-blue-700' },
@@ -12,9 +14,42 @@ const paymentMethods = [
 const amountPresets = [100, 500, 1000, 2000, 5000, 10000];
 
 export default function DepositPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, user, deposit } = useAuth();
+
   const [selectedMethod, setSelectedMethod] = useState('bank');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
+
+  // This route was previously reachable while logged out (no route
+  // guard exists in App.tsx yet), which meant an unauthenticated user
+  // could open /deposit directly by URL and hit undefined user data.
+  // A real ProtectedRoute wrapper covering /deposit and /profile is
+  // the correct long-term fix - this is the minimal guard so this page
+  // doesn't render (or crash) for logged-out visitors in the meantime.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
+  const amount = selectedAmount ?? (customAmount ? Number(customAmount) : 0);
+  const canDeposit = Number.isFinite(amount) && amount > 0;
+
+  const handleDeposit = () => {
+    if (!canDeposit) return;
+    // MOCK: no payment provider is actually called here yet. This just
+    // credits the local session balance so the UI flow is complete
+    // end-to-end. Wire `selectedMethod` to a real payment provider
+    // (Stripe, a local PSP, etc.) before this goes anywhere near
+    // production money.
+    deposit(amount);
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen pb-20 relative overflow-hidden">
@@ -58,7 +93,7 @@ export default function DepositPage() {
             }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            ฿12,580
+            ฿{user.balance.toLocaleString()}
           </motion.div>
         </motion.div>
       </div>
@@ -116,15 +151,15 @@ export default function DepositPage() {
         >
           <h2 className="text-text-primary font-medium mb-3">Select Amount</h2>
           <div className="grid grid-cols-3 gap-3">
-            {amountPresets.map((amount, index) => (
+            {amountPresets.map((presetAmount, index) => (
               <motion.button
-                key={amount}
+                key={presetAmount}
                 onClick={() => {
-                  setSelectedAmount(amount);
+                  setSelectedAmount(presetAmount);
                   setCustomAmount('');
                 }}
                 className={`p-4 rounded-xl text-center transition-all duration-200 ${
-                  selectedAmount === amount && customAmount === ''
+                  selectedAmount === presetAmount && customAmount === ''
                     ? 'bg-accent-gold text-text-dark font-bold'
                     : 'bg-surface text-text-primary hover:bg-surface-hover'
                 }`}
@@ -133,7 +168,7 @@ export default function DepositPage() {
                 transition={{ delay: 0.45 + index * 0.03 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="text-lg">฿{amount.toLocaleString()}</span>
+                <span className="text-lg">฿{presetAmount.toLocaleString()}</span>
               </motion.button>
             ))}
           </div>
@@ -168,17 +203,21 @@ export default function DepositPage() {
       {/* Deposit Button */}
       <div className="px-4">
         <motion.button
-          className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-goldLight text-text-dark font-bold text-lg shadow-lg"
+          onClick={handleDeposit}
+          disabled={!canDeposit}
+          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-opacity ${
+            canDeposit
+              ? 'bg-gradient-to-r from-accent-gold to-accent-goldLight text-text-dark'
+              : 'bg-surface text-text-muted cursor-not-allowed'
+          }`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          style={{
-            boxShadow: '0 0 30px rgba(212, 165, 52, 0.4)',
-          }}
+          whileHover={canDeposit ? { scale: 1.02 } : undefined}
+          whileTap={canDeposit ? { scale: 0.98 } : undefined}
+          style={canDeposit ? { boxShadow: '0 0 30px rgba(212, 165, 52, 0.4)' } : undefined}
         >
-          Deposit {(selectedAmount || customAmount) ? `฿${(selectedAmount || customAmount).toLocaleString()}` : ''}
+          {canDeposit ? `Deposit ฿${amount.toLocaleString()}` : 'Select an amount'}
         </motion.button>
 
         <motion.p
