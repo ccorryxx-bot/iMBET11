@@ -65,7 +65,7 @@ const providerColors: Record<string, string> = {
 
 export default function HomePage() {
   const [activeProvider, setActiveProvider] = useState('ALL');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const filteredGames =
     activeProvider === 'ALL'
@@ -105,7 +105,7 @@ export default function HomePage() {
               transition={{ duration: 3, repeat: Infinity }}
             >
               <span className="text-text-secondary text-xs">Balance</span>
-              <span className="text-accent-gold font-bold">฿12,580</span>
+              <span className="text-accent-gold font-bold">฿{(user?.balance ?? 0).toLocaleString()}</span>
             </motion.div>
           ) : (
             <Link to="/login">
