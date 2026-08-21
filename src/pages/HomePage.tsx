@@ -11,6 +11,13 @@ const BASE = 'https://raw.githubusercontent.com/ccorryxx-bot/game-assets/c3b26f6
 const providers = ['ALL', 'PP', 'JILI', 'PG', 'JDB', 'EVO', 'SP'];
 
 const games = [
+  {
+    id: 248,
+    title: 'Buffalo Win',
+    provider: 'PG',
+    image: 'https://ultraspin168.s3.ap-southeast-1.amazonaws.com/games/PG%20Soft_108_108.png',
+    launchKey: 'buffalo-win',
+  },
   { id: 1,  title: 'Fortune Tiger',    provider: 'PG',   image: `${BASE}/pg/028bd89b2120e880bcf1968c37277460.jpg` },
   { id: 2,  title: 'Wild Bonanza',     provider: 'PP',   image: `${BASE}/pp/002ccc80cfff9b1563814f7cd2a6d0fe.jpg` },
   { id: 3,  title: 'Golden Empire',    provider: 'JILI', image: `${BASE}/jili/0074a83d2b9d825f796e9b62a9431a16.jpg` },
@@ -65,7 +72,51 @@ const providerColors: Record<string, string> = {
 
 export default function HomePage() {
   const [activeProvider, setActiveProvider] = useState('ALL');
-  const { isAuthenticated, user } = useAuth();
+  const [launching, setLaunching] = useState(false);
+  const [launchError, setLaunchError] = useState('');
+  const { isAuthenticated, user, providerToken } = useAuth();
+
+  const launchBuffaloWin = async () => {
+    setLaunchError('');
+    if (!isAuthenticated || !providerToken) {
+      setLaunchError('Please log in with your UltraSpin account first.');
+      return;
+    }
+    if (launching) return;
+
+    const popup = window.open('about:blank', '_blank', 'noopener,noreferrer');
+    if (!popup) {
+      setLaunchError('Please allow pop-ups to open Buffalo Win.');
+      return;
+    }
+
+    setLaunching(true);
+    try {
+      const response = await fetch('/api/ultraspin/launch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${providerToken}`,
+        },
+        body: JSON.stringify({ game: 'buffalo-win' }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok || typeof data.html !== 'string') {
+        popup.close();
+        throw new Error(data.error || 'Buffalo launch failed');
+      }
+
+      const blobUrl = URL.createObjectURL(new Blob([data.html], { type: 'text/html' }));
+      popup.location.href = blobUrl;
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error) {
+      popup.close();
+      setLaunchError(error instanceof Error ? error.message : 'Buffalo launch failed');
+    } finally {
+      setLaunching(false);
+    }
+  };
 
   const filteredGames =
     activeProvider === 'ALL'
@@ -157,6 +208,17 @@ export default function HomePage() {
         </motion.div>
       </div>
 
+      {launchError && (
+        <div className="mx-4 mb-4 rounded-lg border border-status-error/30 bg-status-error/10 px-3 py-2 text-xs text-status-error">
+          {launchError}
+        </div>
+      )}
+      {launching && (
+        <div className="mx-4 mb-4 rounded-lg border border-accent-gold/30 bg-accent-gold/10 px-3 py-2 text-xs text-accent-gold">
+          Opening Buffalo Win…
+        </div>
+      )}
+
       {/* Games Grid */}
       <div className="px-4">
         <motion.div
@@ -176,6 +238,8 @@ export default function HomePage() {
                 title={game.title}
                 provider={game.provider}
                 image={game.image}
+                onClick={game.launchKey === 'buffalo-win' ? launchBuffaloWin : undefined}
+                disabled={game.launchKey === 'buffalo-win' && launching}
               />
             </motion.div>
           ))}

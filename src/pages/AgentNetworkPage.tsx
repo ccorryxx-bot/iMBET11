@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, Link2, ChevronUp, ChevronDown, Copy, Users } from 'lucide-react';
+import { Share2, Link2, ChevronUp, ChevronDown, Users } from 'lucide-react';
 import AnimatedCounter from '../components/AnimatedCounter';
 import CopyButton from '../components/CopyButton';
 import TierBadge from '../components/TierBadge';

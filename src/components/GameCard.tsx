@@ -4,6 +4,8 @@ interface GameCardProps {
   title: string;
   provider: string;
   image: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
 const providerColors: Record<string, string> = {
@@ -13,14 +15,18 @@ const providerColors: Record<string, string> = {
   JDB: 'bg-provider-jdb',
 };
 
-export default function GameCard({ title, provider, image }: GameCardProps) {
+export default function GameCard({ title, provider, image, onClick, disabled = false }: GameCardProps) {
   const providerColor = providerColors[provider] || 'bg-accent-gold';
 
   return (
-    <motion.div
-      className="group relative cursor-pointer"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <motion.button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={`Open ${title}`}
+      className={`group relative w-full cursor-pointer text-left ${disabled ? 'cursor-wait opacity-70' : ''}`}
+      whileHover={disabled ? undefined : { scale: 1.02 }}
+      whileTap={disabled ? undefined : { scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-surface">
@@ -40,6 +46,6 @@ export default function GameCard({ title, provider, image }: GameCardProps) {
       <p className="mt-1.5 px-0.5 text-text-secondary text-xs font-medium truncate">
         {title}
       </p>
-    </motion.div>
+    </motion.button>
   );
 }
