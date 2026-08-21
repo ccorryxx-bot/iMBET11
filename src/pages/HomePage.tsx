@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
@@ -74,7 +74,19 @@ export default function HomePage() {
   const [activeProvider, setActiveProvider] = useState('ALL');
   const [launching, setLaunching] = useState(false);
   const [launchError, setLaunchError] = useState('');
+  const [launchHtml, setLaunchHtml] = useState<string | null>(null);
+  const [launchBlobUrl, setLaunchBlobUrl] = useState<string | null>(null);
   const { isAuthenticated, user, providerToken } = useAuth();
+
+  useEffect(() => {
+    if (!launchHtml) {
+      setLaunchBlobUrl(null);
+      return;
+    }
+    const blobUrl = URL.createObjectURL(new Blob([launchHtml], { type: 'text/html' }));
+    setLaunchBlobUrl(blobUrl);
+    return () => URL.revokeObjectURL(blobUrl);
+  }, [launchHtml]);
 
   const launchBuffaloWin = async () => {
     setLaunchError('');
@@ -83,12 +95,6 @@ export default function HomePage() {
       return;
     }
     if (launching) return;
-
-    const popup = window.open('about:blank', '_blank', 'noopener,noreferrer');
-    if (!popup) {
-      setLaunchError('Please allow pop-ups to open Buffalo Win.');
-      return;
-    }
 
     setLaunching(true);
     try {
@@ -103,15 +109,11 @@ export default function HomePage() {
       const data = await response.json();
 
       if (!response.ok || !data.ok || typeof data.html !== 'string') {
-        popup.close();
         throw new Error(data.error || 'Buffalo launch failed');
       }
 
-      const blobUrl = URL.createObjectURL(new Blob([data.html], { type: 'text/html' }));
-      popup.location.href = blobUrl;
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      setLaunchHtml(data.html);
     } catch (error) {
-      popup.close();
       setLaunchError(error instanceof Error ? error.message : 'Buffalo launch failed');
     } finally {
       setLaunching(false);
@@ -245,6 +247,29 @@ export default function HomePage() {
           ))}
         </motion.div>
       </div>
+
+      {launchBlobUrl && (
+        <div className="fixed inset-0 z-50 bg-black/90 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <div className="flex h-full flex-col overflow-hidden rounded-xl bg-black shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+              <span className="text-sm font-semibold text-white">Buffalo Win</span>
+              <button
+                type="button"
+                onClick={() => setLaunchHtml(null)}
+                className="rounded-full bg-white/10 px-3 py-1 text-xs text-white transition-colors hover:bg-white/20"
+              >
+                Close
+              </button>
+            </div>
+            <iframe
+              title="Buffalo Win"
+              src={launchBlobUrl}
+              className="min-h-0 flex-1 border-0 bg-black"
+              allow="autoplay; fullscreen; gamepad"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Floating bottom shadow for nav */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-brand-bg to-transparent pointer-events-none" />
