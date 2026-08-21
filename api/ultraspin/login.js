@@ -29,13 +29,23 @@ export default async function handler(req, res) {
     }
 
     const token = data?.results?.authorisation?.token;
-    const user = data?.results?.user;
-    if (typeof token !== 'string' || !token || !user) {
+    const providerUser = data?.results?.user;
+    if (typeof token !== 'string' || !token || !providerUser) {
       return res.status(502).json({ ok: false, error: 'invalid_provider_login_response' });
     }
 
-    // Do not log or persist credentials. The short-lived access token is
-    // returned only to the requesting browser for the subsequent launch call.
+    // Return only the fields needed by the UI. In particular, do not expose
+    // the provider's duplicated current_token or financial profile fields.
+    const user = {
+      username: providerUser.username || '',
+      name: providerUser.profile?.name || '',
+      phone: providerUser.profile?.phone || '',
+      balance: Number(providerUser.wallet?.balance || 0),
+      currency: providerUser.wallet?.currency || 'MMK',
+    };
+
+    // Do not log or persist credentials. The access token is returned only to
+    // the requesting browser for the subsequent launch call.
     return res.status(200).json({ ok: true, token, user });
   } catch (error) {
     return res.status(502).json({
