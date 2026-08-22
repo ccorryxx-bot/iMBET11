@@ -244,7 +244,7 @@ export default function HomePage() {
                 title={game.game_name}
                 provider={providerLabel(game.provider)}
                 image={game.image}
-                onClick={game.game_provider === '1007'
+                onClick={game.id === 248 && game.game_provider === '1007' && game.game_uuid === '108'
                   ? () => launchGame(game)
                   : () => setLaunchError(`${game.provider} launch is not connected yet.`)}
                 disabled={launching}
