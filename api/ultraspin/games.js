@@ -22,14 +22,22 @@ export default async function handler(req, res) {
     url.searchParams.set('page', String(page));
     url.searchParams.set('perPage', String(perPage));
 
-    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    const [response, buffaloResponse] = await Promise.all([
+      fetch(url, { headers: { Accept: 'application/json' } }),
+      fetch(`${API_BASE}/searchGames?gameName=buffalo`, { headers: { Accept: 'application/json' } }),
+    ]);
     const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json({ ok: false, error: 'provider_catalog_error' });
+    const buffaloData = await buffaloResponse.json();
+    if (!response.ok || !buffaloResponse.ok) {
+      return res.status(response.status || buffaloResponse.status).json({ ok: false, error: 'provider_catalog_error' });
     }
 
     const records = Array.isArray(data?.results?.data) ? data.results.data : [];
-    const games = records.map((record) => ({
+    const buffaloRecords = Array.isArray(buffaloData?.results) ? buffaloData.results : [];
+    const combinedRecords = [...buffaloRecords, ...records].filter(
+      (record, index, all) => all.findIndex((item) => item.uid === record.uid) === index,
+    );
+    const games = combinedRecords.map((record) => ({
       id: record.id,
       uid: record.uid,
       game_name: record.game_name,
