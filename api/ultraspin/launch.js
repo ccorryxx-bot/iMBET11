@@ -40,6 +40,12 @@ async function verifyLocalSession(token) {
   return { ok: true, user: await response.json() };
 }
 
+// This is the deliberate production adapter boundary. It must be replaced
+// only with the provider's documented per-user external-player/context mapping.
+async function resolveProviderContext() {
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -61,15 +67,12 @@ export default async function handler(req, res) {
     const localSession = await verifyLocalSession(localToken);
     if (!localSession.ok) return res.status(503).json(localSession);
 
-    // Temporary provider adapter boundary. This environment variable is for
-    // controlled integration testing only; it must be replaced by the
-    // per-user external-player/context mapping supplied by the provider.
-    const providerToken = process.env.ULTRASPIN_ACCESS_TOKEN || '';
-    if (!providerToken) {
+    const providerContext = await resolveProviderContext(localSession.user, gameRecord);
+    if (!providerContext) {
       return res.status(503).json({
         ok: false,
         error: 'provider_context_not_configured',
-        message: 'Local account is valid, but no provider launch context is configured.',
+        message: 'Local account is valid, but the official provider player mapping is not configured.',
       });
     }
 
@@ -82,7 +85,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${providerToken}`,
+        Authorization: `Bearer ${providerContext.accessToken}`,
         Accept: 'application/json',
       },
       body: JSON.stringify(launchRecord),
