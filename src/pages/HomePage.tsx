@@ -40,7 +40,7 @@ export default function HomePage() {
   const [launchGameName, setLaunchGameName] = useState('Buffalo Win');
   const [launchHtml, setLaunchHtml] = useState<string | null>(null);
   const [launchBlobUrl, setLaunchBlobUrl] = useState<string | null>(null);
-  const { isAuthenticated, user, providerToken } = useAuth();
+  const { isAuthenticated, user, sessionToken } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -78,8 +78,8 @@ export default function HomePage() {
 
   const launchGame = async (game: ProviderGame) => {
     setLaunchError('');
-    if (!isAuthenticated || !providerToken) {
-      setLaunchError('Please log in with your UltraSpin account first.');
+    if (!isAuthenticated || !sessionToken) {
+      setLaunchError('Please log in to your iMBET11 account first.');
       return;
     }
     if (launching) return;
@@ -90,7 +90,7 @@ export default function HomePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${providerToken}`,
+          Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({ gameRecord: game }),
       });

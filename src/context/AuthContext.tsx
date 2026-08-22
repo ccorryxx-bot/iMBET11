@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 export interface AuthUser {
+  username: string;
   name: string;
   phone: string;
   countryCode: string;
@@ -10,20 +11,20 @@ export interface AuthUser {
 interface AuthContextValue {
   isAuthenticated: boolean;
   user: AuthUser | null;
-  providerToken: string | null;
-  login: (authUser: Omit<AuthUser, 'balance'>, providerToken: string) => void;
+  sessionToken: string | null;
+  login: (authUser: Omit<AuthUser, 'balance'>, sessionToken: string) => void;
   logout: () => void;
   deposit: (amount: number) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const STORAGE_KEY = 'imbet11_auth_session';
-const TOKEN_KEY = 'imbet11_provider_token';
+const TOKEN_KEY = 'imbet11_session_token';
 const STARTING_BALANCE = 0;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [providerToken, setProviderToken] = useState<string | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(stored);
         setUser({ balance: STARTING_BALANCE, ...parsed });
-        setProviderToken(storedToken);
+        setSessionToken(storedToken);
       } catch {
         localStorage.removeItem(STORAGE_KEY);
         sessionStorage.removeItem(TOKEN_KEY);
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const persist = (next: AuthUser | null, token: string | null = null) => {
     setUser(next);
-    setProviderToken(token);
+    setSessionToken(token);
     if (next && token) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       sessionStorage.setItem(TOKEN_KEY, token);
@@ -60,15 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const deposit = (amount: number) => {
     if (!user || !Number.isFinite(amount) || amount <= 0) return;
-    persist({ ...user, balance: user.balance + amount }, providerToken);
+    persist({ ...user, balance: user.balance + amount }, sessionToken);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!user && !!providerToken,
+        isAuthenticated: !!user && !!sessionToken,
         user,
-        providerToken,
+        sessionToken,
         login,
         logout,
         deposit,

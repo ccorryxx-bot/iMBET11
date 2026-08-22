@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthFormProps {
@@ -14,106 +14,83 @@ const countries = [
   { code: '+86', flag: 'CN' },
 ];
 
-function createCaptcha() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
 export default function AuthForm({ mode }: AuthFormProps) {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isRegister = mode === 'register';
 
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [countryCode, setCountryCode] = useState(countries[0].code);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [captchaCode, setCaptchaCode] = useState(createCaptcha);
-  const [captchaValue, setCaptchaValue] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isRegister = mode === 'register';
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#e5e7eb';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = 'bold 22px monospace';
-    context.fillStyle = '#17211d';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(captchaCode, canvas.width / 2, canvas.height / 2);
-    context.strokeStyle = '#b08a2e';
-    context.beginPath();
-    context.moveTo(8, 12);
-    context.lineTo(138, 34);
-    context.stroke();
-  }, [captchaCode]);
-
-  const refreshCaptcha = () => {
-    setCaptchaCode(createCaptcha());
-    setCaptchaValue('');
-    setErrors((current) => ({ ...current, captcha: '' }));
-  };
-
   const validate = () => {
     const next: Record<string, string> = {};
-    if (name.trim().length < 2) {
-      next.name = isRegister ? 'Name must be at least 2 characters' : 'Enter your UltraSpin username';
+    if (!/^[A-Za-z0-9_]{3,32}$/.test(username.trim())) {
+      next.username = 'Use 3–32 letters, numbers, or underscores';
+    }
+    if (isRegister && displayName.trim().length < 2) {
+      next.name = 'Name must be at least 2 characters';
     }
     if (isRegister) {
       const digits = phone.replace(/\D/g, '');
       if (digits.length < 7 || digits.length > 12) next.phone = 'Enter a valid phone number';
     }
     if (password.length < 6) next.password = 'Password must be at least 6 characters';
-    if (!isRegister && captchaValue.trim() !== captchaCode) next.captcha = 'Captcha does not match';
+    if (isRegister && password !== confirmPassword) next.confirmPassword = 'Passwords do not match';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (isRegister) {
-      setErrors({ form: 'Registration is not connected to UltraSpin yet. Use an existing provider account to log in.' });
-      return;
-    }
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
     setErrors({});
     try {
-      const response = await fetch('/api/ultraspin/login', {
+      const endpoint = isRegister ? '/api/imbet/register' : '/api/imbet/login';
+      const payload = isRegister
+        ? {
+            username: username.trim(),
+            password,
+            name: displayName.trim(),
+            phone: `${countryCode}${phone.replace(/\D/g, '')}`,
+          }
+        : { username: username.trim(), password };
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: name.trim(),
-          password,
-          captcha_value: captchaValue.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok || typeof data.token !== 'string') {
-        throw new Error(data.error || 'UltraSpin login failed');
+        const messages: Record<string, string> = {
+          username_already_exists: 'That username is already registered',
+          local_auth_not_configured: 'Local account service is not configured yet',
+          invalid_credentials: 'Incorrect username or password',
+        };
+        throw new Error(messages[data.error] || data.error || 'Account request failed');
       }
 
-      const providerUser = data.user || {};
+      const account = data.user || {};
       login(
         {
-          name: String(providerUser.username || providerUser.name || name.trim()),
-          phone: String(providerUser.phone || ''),
+          username: String(account.username || username.trim()),
+          name: String(account.name || displayName.trim() || username.trim()),
+          phone: String(account.phone || phone),
           countryCode,
         },
         data.token,
       );
       navigate('/');
     } catch (error) {
-      setErrors({ form: error instanceof Error ? error.message : 'UltraSpin login failed' });
-      refreshCaptcha();
+      setErrors({ form: error instanceof Error ? error.message : 'Account request failed' });
     } finally {
       setLoading(false);
     }
@@ -139,50 +116,65 @@ export default function AuthForm({ mode }: AuthFormProps) {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative">
-        <h1 className="text-2xl font-semibold text-text-primary">{isRegister ? 'Create account' : 'Welcome back'}</h1>
+        <h1 className="text-2xl font-semibold text-text-primary">{isRegister ? 'Create your iMBET11 account' : 'Welcome back'}</h1>
         <p className="text-text-secondary text-sm mt-1">
-          {isRegister ? 'Join iMBET11 in under a minute' : 'Log in with your UltraSpin provider account'}
+          {isRegister ? 'Register here. Your account stays on iMBET11.' : 'Log in to your iMBET11 account'}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
-            <label className="text-text-secondary text-xs">{isRegister ? 'Name' : 'UltraSpin Username'}</label>
+            <label className="text-text-secondary text-xs">Username</label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
               autoComplete="username"
-              placeholder={isRegister ? 'Your name' : 'Username'}
+              placeholder="Choose a username"
               className="w-full bg-transparent border-b border-text-primary/15 focus:border-accent-gold outline-none py-2 text-text-primary placeholder:text-text-muted transition-colors"
             />
-            {errors.name && <p className="text-status-error text-xs mt-1">{errors.name}</p>}
+            {errors.username && <p className="text-status-error text-xs mt-1">{errors.username}</p>}
           </div>
 
           {isRegister && (
-            <div>
-              <label className="text-text-secondary text-xs">Phone Number</label>
-              <div className="flex items-center border-b border-text-primary/15 focus-within:border-accent-gold transition-colors">
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="bg-transparent text-text-primary outline-none py-2 pr-2"
-                >
-                  {countries.map((country) => (
-                    <option key={country.code} value={country.code} className="bg-brand-bg text-text-primary">
-                      {country.flag} {country.code}
-                    </option>
-                  ))}
-                </select>
+            <>
+              <div>
+                <label className="text-text-secondary text-xs">Name</label>
                 <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="9xx xxx xxx"
-                  className="flex-1 bg-transparent outline-none py-2 pl-2 text-text-primary placeholder:text-text-muted"
+                  type="text"
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  autoComplete="name"
+                  placeholder="Your name"
+                  className="w-full bg-transparent border-b border-text-primary/15 focus:border-accent-gold outline-none py-2 text-text-primary placeholder:text-text-muted transition-colors"
                 />
+                {errors.name && <p className="text-status-error text-xs mt-1">{errors.name}</p>}
               </div>
-              {errors.phone && <p className="text-status-error text-xs mt-1">{errors.phone}</p>}
-            </div>
+
+              <div>
+                <label className="text-text-secondary text-xs">Phone Number</label>
+                <div className="flex items-center border-b border-text-primary/15 focus-within:border-accent-gold transition-colors">
+                  <select
+                    value={countryCode}
+                    onChange={(event) => setCountryCode(event.target.value)}
+                    className="bg-transparent text-text-primary outline-none py-2 pr-2"
+                  >
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.code} className="bg-brand-bg text-text-primary">
+                        {country.flag} {country.code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="9xx xxx xxx"
+                    className="flex-1 bg-transparent outline-none py-2 pl-2 text-text-primary placeholder:text-text-muted"
+                  />
+                </div>
+                {errors.phone && <p className="text-status-error text-xs mt-1">{errors.phone}</p>}
+              </div>
+            </>
           )}
 
           <div>
@@ -191,8 +183,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete={isRegister ? 'new-password' : 'current-password'}
                 placeholder="••••••••"
                 className="flex-1 bg-transparent outline-none py-2 text-text-primary placeholder:text-text-muted"
               />
@@ -203,26 +195,18 @@ export default function AuthForm({ mode }: AuthFormProps) {
             {errors.password && <p className="text-status-error text-xs mt-1">{errors.password}</p>}
           </div>
 
-          {!isRegister && (
+          {isRegister && (
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-text-secondary text-xs">Captcha</label>
-                <button type="button" onClick={refreshCaptcha} className="text-text-muted" aria-label="Refresh captcha">
-                  <RefreshCw size={15} />
-                </button>
-              </div>
-              <div className="flex items-center gap-3">
-                <canvas ref={canvasRef} width={146} height={46} className="rounded-md" aria-label={`Captcha ${captchaCode}`} />
-                <input
-                  type="text"
-                  value={captchaValue}
-                  onChange={(e) => setCaptchaValue(e.target.value)}
-                  inputMode="numeric"
-                  placeholder="Enter code"
-                  className="min-w-0 flex-1 bg-transparent border-b border-text-primary/15 focus:border-accent-gold outline-none py-2 text-text-primary placeholder:text-text-muted"
-                />
-              </div>
-              {errors.captcha && <p className="text-status-error text-xs mt-1">{errors.captcha}</p>}
+              <label className="text-text-secondary text-xs">Confirm password</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                className="w-full bg-transparent border-b border-text-primary/15 focus:border-accent-gold outline-none py-2 text-text-primary placeholder:text-text-muted transition-colors"
+              />
+              {errors.confirmPassword && <p className="text-status-error text-xs mt-1">{errors.confirmPassword}</p>}
             </div>
           )}
 
@@ -234,7 +218,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
             className="w-full py-3 rounded-full bg-accent-gold text-text-dark font-medium mt-2 disabled:opacity-60"
             whileTap={{ scale: loading ? 1 : 0.98 }}
           >
-            {loading ? 'Connecting…' : isRegister ? 'Create account' : 'Log in'}
+            {loading ? 'Creating…' : isRegister ? 'Create account' : 'Log in'}
           </motion.button>
         </form>
 
