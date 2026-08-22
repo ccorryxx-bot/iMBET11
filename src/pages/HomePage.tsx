@@ -6,59 +6,19 @@ import GameCard from '../components/GameCard';
 import PromoBanner from '../components/PromoBanner';
 import { useAuth } from '../context/AuthContext';
 
-const BASE = 'https://raw.githubusercontent.com/ccorryxx-bot/game-assets/c3b26f6848ae526babcbe3fbab75e8a5a61b00e8';
-
-const providers = ['ALL', 'PP', 'JILI', 'PG', 'JDB', 'EVO', 'SP'];
-
-const games = [
-  {
-    id: 248,
-    title: 'Buffalo Win',
-    provider: 'PG',
-    image: 'https://ultraspin168.s3.ap-southeast-1.amazonaws.com/games/PG%20Soft_108_108.png',
-    launchKey: 'buffalo-win',
-  },
-  { id: 1,  title: 'Fortune Tiger',    provider: 'PG',   image: `${BASE}/pg/028bd89b2120e880bcf1968c37277460.jpg` },
-  { id: 2,  title: 'Wild Bonanza',     provider: 'PP',   image: `${BASE}/pp/002ccc80cfff9b1563814f7cd2a6d0fe.jpg` },
-  { id: 3,  title: 'Golden Empire',    provider: 'JILI', image: `${BASE}/jili/0074a83d2b9d825f796e9b62a9431a16.jpg` },
-  { id: 4,  title: 'Dragon Treasure',  provider: 'JDB',  image: `${BASE}/jdb/00b886803f3d067f7028872468e84745.jpg` },
-  { id: 5,  title: 'Mega Jackpot',     provider: 'PG',   image: `${BASE}/pg/08d92dc2ca14f42c681b44297386d600.jpg` },
-  { id: 6,  title: 'Lucky Neko',       provider: 'PP',   image: `${BASE}/pp/00ab11e01d9f85c9b74e0e52233e9a85.jpg` },
-  { id: 7,  title: 'Aztec Gems',       provider: 'JILI', image: `${BASE}/jili/007f5afeab86a47d96038324438c0c1f.jpg` },
-  { id: 8,  title: 'Fishing God',      provider: 'JDB',  image: `${BASE}/jdb/0160b30b64598290365f61211fb84a7b.jpg` },
-  { id: 9,  title: 'Star Bounty',      provider: 'PG',   image: `${BASE}/pg/0a8772ad753cfce2c03c0599ad60c74c.jpg` },
-  { id: 10, title: 'Caishen Wins',     provider: 'PP',   image: `${BASE}/pp/00c3f19ee51d2c52a20a7b88fe8c6d9c.jpg` },
-  { id: 11, title: 'Super Ace',        provider: 'JILI', image: `${BASE}/jili/00aa0630c427f1b2e14152e81e82a446.jpg` },
-  { id: 12, title: 'Fruit Party',      provider: 'JDB',  image: `${BASE}/jdb/03c2cd347f0600cc87601e0d0af3b2f4.jpg` },
-  { id: 13, title: 'Gates of Olympus', provider: 'PG',   image: `${BASE}/pg/0da0fda6981138234f03cb665984c07e.jpg` },
-  { id: 14, title: 'Wolf Gold',        provider: 'PP',   image: `${BASE}/pp/00d1836f3a1200cb6754a61be4c39160.jpg` },
-  { id: 15, title: 'Magic Lamp',       provider: 'JILI', image: `${BASE}/jili/00d92d5cec10cf85623938222a6c2bb6.jpg` },
-  { id: 16, title: 'Ocean King',       provider: 'JDB',  image: `${BASE}/jdb/046f8dce34ee2a53c86d0a54e0bb89d2.jpg` },
-  { id: 17, title: 'Sweet Bonanza',    provider: 'PG',   image: `${BASE}/pg/0f5374a4766f204a6420120dcfecd9e2.jpg` },
-  { id: 18, title: 'Great Rhino',      provider: 'PP',   image: `${BASE}/pp/018cd71c3da7eaecf4c707fe93df0983.jpg` },
-  { id: 19, title: 'Charge Buffalo',   provider: 'JILI', image: `${BASE}/jili/014c49675e1c22c76352b8047ae6d8eb.jpg` },
-  { id: 20, title: 'Lucky Goldbricks', provider: 'JDB',  image: `${BASE}/jdb/04a3be36bbf1110345d53e07df9c9cc3.jpg` },
-  { id: 21, title: 'Wild West Gold',   provider: 'PG',   image: `${BASE}/pg/101ca3ff83b149dcf3439309e9b32142.jpg` },
-  { id: 22, title: 'The Dog House',    provider: 'PP',   image: `${BASE}/pp/01e4cb8a338a238c044d7cc69d26000f.jpg` },
-  { id: 23, title: 'Golden Joker',     provider: 'JILI', image: `${BASE}/jili/0426ba674c9dd29de6fa023afcf0640d.jpg` },
-  { id: 24, title: 'Dragon Gold',      provider: 'JDB',  image: `${BASE}/jdb/05dc8c7a43305c3fcb43574c570d6378.jpg` },
-  { id: 25, title: 'Book of Tut',      provider: 'PG',   image: `${BASE}/pg/116989bb267a72035bd01818c5496126.jpg` },
-  { id: 26, title: 'Mustang Gold',     provider: 'PP',   image: `${BASE}/pp/031f433c91b6b997d406773a7385df0f.jpg` },
-  { id: 27, title: 'Boxing King',      provider: 'JILI', image: `${BASE}/jili/04c9784b0b1b162b2c86f9ce353da8b7.jpg` },
-  { id: 28, title: 'Fortune Pig',      provider: 'JDB',  image: `${BASE}/jdb/0651af3e73c7600633522ffe15cc175b.jpg` },
-  { id: 29, title: 'Kraken Unleashed', provider: 'PG',   image: `${BASE}/pg/13109a0d9c012f7f92f192c34a8926bf.jpg` },
-  { id: 30, title: 'Chilli Heat',      provider: 'PP',   image: `${BASE}/pp/03ca2d1bef1ca213826750ee1e38b6fd.jpg` },
-  { id: 31, title: 'Money Coming',     provider: 'JILI', image: `${BASE}/jili/05b10f6b1b5055e4f86c97c717304602.jpg` },
-  { id: 32, title: 'Lucky Ball',       provider: 'JDB',  image: `${BASE}/jdb/067d540d7ece7e7dfcfcadf11f25a71d.jpg` },
-  { id: 33, title: 'Egyptian Fortunes',provider: 'PG',   image: `${BASE}/pg/22b189b05dd3095a12f862d64fe88847.jpg` },
-  { id: 34, title: 'John Hunter',      provider: 'PP',   image: `${BASE}/pp/03e022cf43928af26cfb8bfce18fd8e8.jpg` },
-  { id: 35, title: 'Roma X',           provider: 'JILI', image: `${BASE}/jili/05fc951a633d4c6b4bbe8c429cd63658.jpg` },
-  { id: 36, title: 'Muay Thai',        provider: 'JDB',  image: `${BASE}/jdb/07df172c089e29e576aa41eeb0cbeb2b.jpg` },
-  { id: 37, title: 'Vampire Delight',  provider: 'PG',   image: `${BASE}/pg/24d8e1dbc5cface0907f5a21ecd56753.jpg` },
-  { id: 38, title: 'Pyramid King',     provider: 'PP',   image: `${BASE}/pp/045f290df6c578256adb632ea1da485f.jpg` },
-  { id: 39, title: 'Fortune Gems',     provider: 'JILI', image: `${BASE}/jili/06ad05bdbfafec916c5eb313c50a949c.jpg` },
-  { id: 40, title: 'Bubble Shooter',   provider: 'JDB',  image: `${BASE}/jdb/0e8432be6bc0cab304b41bc964aaf154.jpg` },
-];
+interface ProviderGame {
+  id: number;
+  uid: string;
+  game_name: string;
+  game_image: string;
+  image: string;
+  game_type: string;
+  game_provider: string;
+  game_uuid: string;
+  provider: string;
+  merchant: string;
+  [key: string]: unknown;
+}
 
 const providerColors: Record<string, string> = {
   ALL:  'bg-text-primary/10 text-text-primary',
@@ -71,12 +31,40 @@ const providerColors: Record<string, string> = {
 };
 
 export default function HomePage() {
+  const [games, setGames] = useState<ProviderGame[]>([]);
   const [activeProvider, setActiveProvider] = useState('ALL');
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState('');
   const [launching, setLaunching] = useState(false);
   const [launchError, setLaunchError] = useState('');
+  const [launchGameName, setLaunchGameName] = useState('Buffalo Win');
   const [launchHtml, setLaunchHtml] = useState<string | null>(null);
   const [launchBlobUrl, setLaunchBlobUrl] = useState<string | null>(null);
   const { isAuthenticated, user, providerToken } = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/ultraspin/games?page=1&perPage=60')
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Provider catalog unavailable');
+        return data;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const records = Array.isArray(data.games) ? data.games : [];
+        setGames(records.filter((record: ProviderGame) => record.uid && record.game_name && record.provider && record.image));
+      })
+      .catch((error) => {
+        if (!cancelled) setCatalogError(error instanceof Error ? error.message : 'Provider catalog unavailable');
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!launchHtml) {
@@ -88,7 +76,7 @@ export default function HomePage() {
     return () => URL.revokeObjectURL(blobUrl);
   }, [launchHtml]);
 
-  const launchBuffaloWin = async () => {
+  const launchGame = async (game: ProviderGame) => {
     setLaunchError('');
     if (!isAuthenticated || !providerToken) {
       setLaunchError('Please log in with your UltraSpin account first.');
@@ -104,7 +92,7 @@ export default function HomePage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${providerToken}`,
         },
-        body: JSON.stringify({ game: 'buffalo-win' }),
+        body: JSON.stringify({ gameRecord: game }),
       });
       const data = await response.json();
 
@@ -112,6 +100,7 @@ export default function HomePage() {
         throw new Error(data.error || 'Buffalo launch failed');
       }
 
+      setLaunchGameName(game.game_name);
       setLaunchHtml(data.html);
     } catch (error) {
       setLaunchError(error instanceof Error ? error.message : 'Buffalo launch failed');
@@ -120,10 +109,15 @@ export default function HomePage() {
     }
   };
 
-  const filteredGames =
-    activeProvider === 'ALL'
-      ? games
-      : games.filter((g) => g.provider === activeProvider);
+  const providers = ['ALL', ...Array.from(new Set(games.map((game) => game.provider)))];
+  const filteredGames = activeProvider === 'ALL' ? games : games.filter((game) => game.provider === activeProvider);
+  const providerLabel = (provider: string) => {
+    if (/pg soft/i.test(provider)) return 'PG';
+    if (/pragmatic/i.test(provider)) return 'PP';
+    if (/jili/i.test(provider)) return 'JILI';
+    if (/jdb/i.test(provider)) return 'JDB';
+    return provider.slice(0, 6).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen pb-20 relative overflow-hidden">
@@ -210,9 +204,19 @@ export default function HomePage() {
         </motion.div>
       </div>
 
+      {catalogError && (
+        <div className="mx-4 mb-4 rounded-lg border border-status-error/30 bg-status-error/10 px-3 py-2 text-xs text-status-error">
+          {catalogError}
+        </div>
+      )}
       {launchError && (
         <div className="mx-4 mb-4 rounded-lg border border-status-error/30 bg-status-error/10 px-3 py-2 text-xs text-status-error">
           {launchError}
+        </div>
+      )}
+      {catalogLoading && (
+        <div className="mx-4 mb-4 rounded-lg border border-text-primary/10 bg-surface px-3 py-2 text-xs text-text-secondary">
+          Loading real provider game catalog…
         </div>
       )}
       {launching && (
@@ -231,17 +235,19 @@ export default function HomePage() {
         >
           {filteredGames.map((game, index) => (
             <motion.div
-              key={game.id}
+              key={game.uid}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.03 * index }}
             >
               <GameCard
-                title={game.title}
-                provider={game.provider}
+                title={game.game_name}
+                provider={providerLabel(game.provider)}
                 image={game.image}
-                onClick={game.launchKey === 'buffalo-win' ? launchBuffaloWin : undefined}
-                disabled={game.launchKey === 'buffalo-win' && launching}
+                onClick={game.game_provider === '1007'
+                  ? () => launchGame(game)
+                  : () => setLaunchError(`${game.provider} launch is not connected yet.`)}
+                disabled={launching}
               />
             </motion.div>
           ))}
@@ -252,7 +258,7 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 bg-black/90 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="flex h-full flex-col overflow-hidden rounded-xl bg-black shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-              <span className="text-sm font-semibold text-white">Buffalo Win</span>
+              <span className="text-sm font-semibold text-white">{launchGameName}</span>
               <button
                 type="button"
                 onClick={() => setLaunchHtml(null)}

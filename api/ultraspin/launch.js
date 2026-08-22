@@ -1,36 +1,44 @@
-const BUFFALO_WIN = {
-  id: 248,
-  uid: 'd8444d05-8b50-48ae-8869-07225e78a757',
-  game_name: 'Buffalo Win',
-  game_image: 'PG Soft_108_108.png',
-  game_type: 'SLOT',
-  game_provider: '1007',
-  game_uuid: '108',
-  has_lobby: 0,
-  is_mobile: 0,
-  has_freespins: 0,
-  has_tables: 0,
-  has_demo: 0,
-  freespin_valid_until_full_day: '0',
-  technology: '',
-  status: 'active',
-  provider: 'PG Soft',
-  is_new: 0,
-  is_favorite: 0,
-  category: 'slot',
-  merchant: 'gsapi',
-  order: 40,
-  is_buffalo: 0,
-  is_skm: 0,
-  is_slot: 0,
-  is_fish: 0,
-  is_arcade: 0,
-};
+const LAUNCH_FIELDS = [
+  'id',
+  'uid',
+  'game_name',
+  'game_image',
+  'game_type',
+  'game_provider',
+  'game_uuid',
+  'has_lobby',
+  'is_mobile',
+  'has_freespins',
+  'has_tables',
+  'has_demo',
+  'freespin_valid_until_full_day',
+  'technology',
+  'status',
+  'provider',
+  'is_new',
+  'is_favorite',
+  'category',
+  'merchant',
+  'order',
+  'is_buffalo',
+  'is_skm',
+  'is_slot',
+  'is_fish',
+  'is_arcade',
+];
 
 function getBearerToken(req) {
   const header = req.headers.authorization || '';
   if (header.toLowerCase().startsWith('bearer ')) return header.slice(7).trim();
   return process.env.ULTRASPIN_ACCESS_TOKEN || '';
+}
+
+function pickLaunchRecord(record) {
+  return Object.fromEntries(
+    LAUNCH_FIELDS
+      .filter((field) => Object.prototype.hasOwnProperty.call(record, field))
+      .map((field) => [field, record[field]]),
+  );
 }
 
 export default async function handler(req, res) {
@@ -40,12 +48,26 @@ export default async function handler(req, res) {
   }
 
   const token = getBearerToken(req);
-  if (!token) {
-    return res.status(500).json({ ok: false, error: 'missing_provider_token' });
+  if (!token) return res.status(401).json({ ok: false, error: 'missing_provider_token' });
+
+  const gameRecord = req.body?.gameRecord;
+  if (!gameRecord || typeof gameRecord !== 'object') {
+    return res.status(400).json({ ok: false, error: 'missing_game_record' });
+  }
+
+  // This integration is intentionally enabled for the observed PG Soft
+  // Buffalo Win flow only. Other provider cards are catalog-visible but are
+  // not sent to an incompatible launch branch yet.
+  if (String(gameRecord.game_provider) !== '1007' || String(gameRecord.game_uuid) !== '108') {
+    return res.status(400).json({ ok: false, error: 'provider_launch_not_connected' });
+  }
+
+  const launchRecord = pickLaunchRecord(gameRecord);
+  if (!launchRecord.uid || !launchRecord.game_name || !launchRecord.game_provider || !launchRecord.game_uuid) {
+    return res.status(400).json({ ok: false, error: 'invalid_game_record' });
   }
 
   try {
-    // UltraSpin's observed frontend sends the complete clicked game object.
     const response = await fetch('https://api.ultraspin168.com/api/launchGame', {
       method: 'POST',
       headers: {
@@ -53,7 +75,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
-      body: JSON.stringify(BUFFALO_WIN),
+      body: JSON.stringify(launchRecord),
     });
 
     const data = await response.json();
@@ -68,14 +90,9 @@ export default async function handler(req, res) {
 
     const launcher = data?.results?.url;
     if (typeof launcher !== 'string' || launcher.length < 100) {
-      return res.status(502).json({
-        ok: false,
-        error: 'invalid_provider_launch_response',
-      });
+      return res.status(502).json({ ok: false, error: 'invalid_provider_launch_response' });
     }
 
-    // For PG Soft code 1007 the observed response is HTML launcher content,
-    // not a normal external URL. The browser will load it via a Blob URL.
     return res.status(200).json({ ok: true, html: launcher });
   } catch (error) {
     return res.status(502).json({
