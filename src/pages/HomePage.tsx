@@ -69,11 +69,16 @@ export default function HomePage() {
   useEffect(() => {
     if (!launchHtml) {
       setLaunchBlobUrl(null);
+      document.body.style.overflow = '';
       return;
     }
     const blobUrl = URL.createObjectURL(new Blob([launchHtml], { type: 'text/html' }));
     setLaunchBlobUrl(blobUrl);
-    return () => URL.revokeObjectURL(blobUrl);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      URL.revokeObjectURL(blobUrl);
+      document.body.style.overflow = '';
+    };
   }, [launchHtml]);
 
   const launchGame = async (game: ProviderGame) => {
@@ -84,6 +89,9 @@ export default function HomePage() {
     }
     if (launching) return;
 
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+      void document.documentElement.requestFullscreen().catch(() => undefined);
+    }
     setLaunching(true);
     try {
       const response = await fetch('/api/ultraspin/launch', {
@@ -106,6 +114,13 @@ export default function HomePage() {
       setLaunchError(error instanceof Error ? error.message : 'Buffalo launch failed');
     } finally {
       setLaunching(false);
+    }
+  };
+
+  const closeGame = () => {
+    setLaunchHtml(null);
+    if (document.fullscreenElement && document.exitFullscreen) {
+      void document.exitFullscreen().catch(() => undefined);
     }
   };
 
@@ -255,24 +270,23 @@ export default function HomePage() {
       </div>
 
       {launchBlobUrl && (
-        <div className="fixed inset-0 z-50 bg-black/90 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <div className="flex h-full flex-col overflow-hidden rounded-xl bg-black shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-              <span className="text-sm font-semibold text-white">{launchGameName}</span>
-              <button
-                type="button"
-                onClick={() => setLaunchHtml(null)}
-                className="rounded-full bg-white/10 px-3 py-1 text-xs text-white transition-colors hover:bg-white/20"
-              >
-                Close
-              </button>
-            </div>
-            <iframe
-              title="Buffalo Win"
-              src={launchBlobUrl}
-              className="min-h-0 flex-1 border-0 bg-black"
-              allow="autoplay; fullscreen; gamepad"
-            />
+        <div className="fixed inset-0 z-[100] h-[100dvh] min-h-[100svh] w-screen overflow-hidden bg-black overscroll-none">
+          <iframe
+            title={launchGameName}
+            src={launchBlobUrl}
+            className="absolute inset-0 h-full w-full border-0 bg-black"
+            allow="autoplay; fullscreen; gamepad"
+            allowFullScreen
+          />
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-end bg-gradient-to-b from-black/45 to-transparent px-3 pb-8 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <button
+              type="button"
+              onClick={closeGame}
+              aria-label={`Close ${launchGameName}`}
+              className="pointer-events-auto rounded-full bg-black/65 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-black/85"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
