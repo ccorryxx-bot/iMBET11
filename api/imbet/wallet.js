@@ -8,6 +8,16 @@ function json(res, status, body) {
   return res.end(JSON.stringify(body));
 }
 
+async function fetchWithTimeout(input, init = {}, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -21,7 +31,7 @@ export default async function handler(req, res) {
   const { url, key } = getConfig();
   if (!url || !key) return json(res, 503, { error: 'local_auth_not_configured' });
 
-  const userResponse = await fetch(`${url}/auth/v1/user`, {
+  const userResponse = await fetchWithTimeout(`${url}/auth/v1/user`, {
     headers: { apikey: key, Authorization: `Bearer ${token}` },
   });
   if (!userResponse.ok) return json(res, 401, { error: 'invalid_credentials' });
@@ -30,7 +40,7 @@ export default async function handler(req, res) {
   const playerId = user?.id;
   if (!playerId) return json(res, 401, { error: 'invalid_credentials' });
 
-  const walletResponse = await fetch(
+  const walletResponse = await fetchWithTimeout(
     `${url}/rest/v1/player_wallets?select=currency,balance_minor,status&player_id=eq.${encodeURIComponent(playerId)}&limit=1`,
     { headers: { apikey: key, Authorization: `Bearer ${key}` } },
   );
