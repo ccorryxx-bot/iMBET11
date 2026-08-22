@@ -20,6 +20,13 @@ interface ProviderGame {
   [key: string]: unknown;
 }
 
+interface WalletSnapshot {
+  currency: string;
+  balance_minor: number;
+  status: string;
+  mode: string;
+}
+
 const providerColors: Record<string, string> = {
   ALL:  'bg-text-primary/10 text-text-primary',
   PP:   'bg-provider-pp/20 text-provider-pp hover:bg-provider-pp/30',
@@ -40,7 +47,37 @@ export default function HomePage() {
   const [launchGameName, setLaunchGameName] = useState('Buffalo Win');
   const [launchHtml, setLaunchHtml] = useState<string | null>(null);
   const [launchBlobUrl, setLaunchBlobUrl] = useState<string | null>(null);
-  const { isAuthenticated, user, sessionToken } = useAuth();
+  const [walletSnapshot, setWalletSnapshot] = useState<WalletSnapshot | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const { isAuthenticated, sessionToken } = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!isAuthenticated || !sessionToken) {
+      setWalletSnapshot(null);
+      setWalletLoading(false);
+      return () => { cancelled = true; };
+    }
+
+    setWalletLoading(true);
+    fetch('/api/imbet/wallet', { headers: { Authorization: `Bearer ${sessionToken}` } })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Wallet unavailable');
+        return data as WalletSnapshot;
+      })
+      .then((data) => {
+        if (!cancelled) setWalletSnapshot(data);
+      })
+      .catch(() => {
+        if (!cancelled) setWalletSnapshot(null);
+      })
+      .finally(() => {
+        if (!cancelled) setWalletLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [isAuthenticated, sessionToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -166,8 +203,10 @@ export default function HomePage() {
               animate={{ boxShadow: ['0 0 0px rgba(212,165,52,0)', '0 0 20px rgba(212,165,52,0.3)', '0 0 0px rgba(212,165,52,0)'] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              <span className="text-text-secondary text-xs">Balance</span>
-              <span className="text-accent-gold font-bold">฿{(user?.balance ?? 0).toLocaleString()}</span>
+              <span className="text-text-secondary text-xs">Wallet</span>
+              <span className="text-accent-gold font-bold">
+                {walletLoading ? '…' : walletSnapshot ? `${walletSnapshot.currency} ${walletSnapshot.balance_minor.toLocaleString()}` : '—'}
+              </span>
             </motion.div>
           ) : (
             <Link to="/login">
